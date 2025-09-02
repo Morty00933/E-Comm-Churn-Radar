@@ -47,27 +47,27 @@ End-to-end ML-проект: предсказание оттока пользов
 
 ```
 
-├── configs/
-│   └── config.yaml          # Конфигурация (пути к данным, параметры моделей)
-├── data/
-│   ├── 2019-Oct.csv         # Сырые данные
-│   ├── 2019-Nov.csv
-│   ├── 2019-Dec.csv
-│   ├── 2020-Jan.csv
-│   └── 2020-Feb.csv
-├── models/
-│   ├── model.pkl            # Сохранённая модель
-│   ├── metrics.json         # Метрики качества
-│   ├── feature\_importances.csv
-│   └── test\_predictions.csv
-├── src/
-│   ├── features/
-│   │   └── build\_features.py
-│   ├── models/
-│   │   └── train\_model.py   # Основной скрипт обучения
-│   └── visualization/
-│       └── dashboard.py     # Streamlit дашборд
-└── README.md
+  ├── configs/
+  │   └── config.yaml          # Конфигурация (пути к данным, параметры моделей)
+  ├── data/
+  │   ├── 2019-Oct.csv         # Сырые данные
+  │   ├── 2019-Nov.csv
+  │   ├── 2019-Dec.csv
+  │   ├── 2020-Jan.csv
+  │   └── 2020-Feb.csv
+  ├── models/
+  │   ├── model.pkl            # Сохранённая модель
+  │   ├── metrics.json         # Метрики качества
+  │   ├── feature\_importances.csv
+  │   └── test\_predictions.csv
+  ├── src/
+  │   ├── features/
+  │   │   └── build\_features.py
+  │   ├── models/
+  │   │   └── train\_model.py   # Основной скрипт обучения
+  │   └── visualization/
+  │       └── dashboard.py     # Streamlit дашборд
+  └── README.md
 
 ````
 
