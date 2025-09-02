@@ -1,0 +1,43 @@
+{
+  "mode": "hist->next (train) + test->future_or_synthetic (test)",
+  "chosen_model": "xgboost",
+  "train_holdout": {
+    "best_by": "roc_auc",
+    "candidates": [
+      {
+        "model": "lightgbm",
+        "roc_auc": 0.7693764338859878,
+        "pr_auc": 0.934508298906225,
+        "f1": 0.93026037205243,
+        "best_thr": 0.15,
+        "fit_sec": 3.7729623317718506
+      },
+      {
+        "model": "xgboost",
+        "roc_auc": 0.7717334106015865,
+        "pr_auc": 0.9352558472382868,
+        "f1": 0.9306971837739347,
+        "best_thr": 0.1,
+        "fit_sec": 1.9362115859985352
+      },
+      {
+        "model": "logreg",
+        "roc_auc": 0.7041320564330871,
+        "pr_auc": 0.914955621603085,
+        "f1": 0.9273558953361909,
+        "best_thr": 0.39999999999999997,
+        "fit_sec": 3.830760955810547
+      }
+    ]
+  },
+  "test_metrics": {
+    "roc_auc": NaN,
+    "pr_auc": 0.0,
+    "f1": 0.0,
+    "best_threshold_used": 0.1,
+    "n_test": 200975,
+    "n_pos_test": 0,
+    "n_neg_test": 200975,
+    "labels_source": "synthetic_inactive_days>30"
+  }
+}

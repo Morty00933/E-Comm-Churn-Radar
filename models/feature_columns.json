@@ -1,0 +1,23 @@
+[
+  "clicks",
+  "purchases",
+  "avg_session_time",
+  "active_days",
+  "days_since_last_visit",
+  "account_age_days",
+  "avg_order_value",
+  "total_spend",
+  "n_unique_categories",
+  "n_unique_brands",
+  "is_buyer",
+  "high_value_user",
+  "conversion_rate",
+  "engagement",
+  "clicks_per_time",
+  "order_value_per_time",
+  "spend_per_day",
+  "purchases_per_day",
+  "days_bin_recent",
+  "days_bin_medium",
+  "days_bin_long"
+]

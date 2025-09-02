@@ -1,0 +1,41 @@
+# Python / Virtualenv
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+env/
+venv/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Jupyter / Reports
+.ipynb_checkpoints/
+
+# Logs / temp
+logs/
+*.log
+tmp/
+temp/
+
+# Data & artifacts
+data/*.csv
+data/*.parquet
+data/*.json
+!data/.gitkeep
+
+models/*.pkl
+models/*.bin
+models/*.pt
+models/*.onnx
+models/*.joblib
+!models/.gitkeep
+
+# Streamlit cache
+.streamlit/
+.cache/

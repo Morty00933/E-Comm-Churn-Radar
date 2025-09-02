@@ -1,0 +1,67 @@
+data:
+  # TRAIN: события Oct–Jan (лейбл из Feb)
+  train_files:
+    - "data/2019-Oct.csv"
+    - "data/2019-Nov.csv"
+    - "data/2019-Dec.csv"
+    - "data/2020-Jan.csv"
+
+  # TEST: события Feb (лейбл будем делать синтетически по неактивности)
+  test_files:
+    - "data/2020-Feb.csv"
+
+  # future_files можно не указывать, если March отсутствует
+  future_files: []
+
+  processed_train_path: "data/processed_train.csv"
+  processed_test_path: "data/processed_test.csv"
+
+  # когорты (отрежем «совсем старых»)
+  cohort:
+    use_last_window: true
+    window_days: 14
+
+features:
+  clip_quantile: 0.99
+  label_noise_pct: 0.02
+
+model:
+  candidates:
+    lightgbm:
+      n_estimators: 500
+      learning_rate: 0.05
+      num_leaves: 63
+      max_depth: -1
+      min_child_samples: 100
+      subsample: 0.8
+      colsample_bytree: 0.8
+      reg_alpha: 0.1
+      reg_lambda: 0.3
+      feature_pre_filter: false
+    xgboost:
+      n_estimators: 500
+      learning_rate: 0.05
+      max_depth: 6
+      subsample: 0.8
+      colsample_bytree: 0.8
+      reg_alpha: 0.0
+      reg_lambda: 1.0
+    logreg:
+      C: 1.0
+      max_iter: 200
+      n_jobs: -1
+
+  cv_folds: 5
+
+artifacts:
+  model_path: "models/model.pkl"
+  metrics_path: "models/metrics.json"
+  feature_importances_path: "models/feature_importances.csv"
+  test_predictions_path: "models/test_predictions.csv"
+  feature_columns_path: "models/feature_columns.json"
+  candidates_report_path: "models/candidates_report.csv"
+
+# Параметры синтетической разметки теста (если future_files пуст)
+synthetic_test_label:
+  enabled: true
+  inactive_days_threshold: 30  # churn=1, если days_since_last_visit > 30 в конце Feb

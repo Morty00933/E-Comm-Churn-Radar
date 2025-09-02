@@ -1,0 +1,9 @@
+{
+  "roc_auc": NaN,
+  "pr_auc": 0.0,
+  "best_threshold": 0.05,
+  "f1": 0.0,
+  "n_samples": 391055,
+  "n_positive": 0,
+  "n_negative": 391055
+}
