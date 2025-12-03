@@ -1,0 +1,51 @@
+data:
+  train_path: "data/train.csv"
+  test_path: "data/test.csv"
+  target_column: "churn"
+  id_column: "user_id"
+  test_size: 0.2
+
+features:
+  clip_quantile: 0.99
+  aggregation_window_days: 30
+
+model:
+  algorithm: "auto"
+  cv_folds: 5
+  early_stopping_rounds: 50
+  
+  candidates:
+    lightgbm:
+      n_estimators: 300
+      learning_rate: 0.05
+      num_leaves: 31
+      max_depth: -1
+      subsample: 0.8
+      colsample_bytree: 0.8
+    
+    xgboost:
+      n_estimators: 300
+      learning_rate: 0.05
+      max_depth: 6
+      subsample: 0.8
+      colsample_bytree: 0.8
+    
+    logreg:
+      C: 1.0
+      max_iter: 1000
+
+  hpo:
+    enabled: false
+    n_trials: 30
+    timeout_sec: 1800
+
+artifacts:
+  model_path: "models/model.pkl"
+  metrics_path: "models/metrics.json"
+  feature_columns_path: "models/feature_columns.json"
+
+mlflow:
+  tracking_uri: "http://localhost:5000"
+  experiment_name: "churn-prediction"
+  model_name: "churn-model"
+  register_stage: "Staging"
