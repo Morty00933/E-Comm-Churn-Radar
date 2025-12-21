@@ -1,0 +1,130 @@
+# -- Number of API replicas (keep 1 for Minikube/Kind)
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  repository: e-comm-churn-radar-api
+  # -- Image pull policy (use IfNotPresent for local builds)
+  pullPolicy: IfNotPresent
+  # -- Image tag override (defaults to Chart appVersion)
+  tag: "latest"
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+# -- Override the release name
+nameOverride: ""
+# -- Override the full release name
+fullnameOverride: ""
+
+# ---------------------------------------------------------------------------
+# API configuration
+# ---------------------------------------------------------------------------
+api:
+  # -- Container port the API listens on
+  port: 8000
+  # -- Number of uvicorn workers
+  workers: 1
+  # -- Log level for the application
+  logLevel: "INFO"
+
+# ---------------------------------------------------------------------------
+# Environment / ConfigMap values
+# ---------------------------------------------------------------------------
+config:
+  # -- Runtime environment (development | staging | production)
+  environment: "development"
+  # -- MLflow tracking server URI (points to in-cluster MLflow or external)
+  mlflowTrackingUri: "http://mlflow:5000"
+  # -- Registered model name in MLflow
+  mlflowModelName: "churn-model"
+  # -- Redis connection URL
+  redisUrl: "redis://redis:6379/0"
+  # -- Enable rate limiting (1 = enabled, 0 = disabled)
+  rateLimitEnabled: "1"
+  # -- Comma-separated list of allowed CORS origins
+  allowedOrigins: "http://localhost:3000,http://localhost:8080"
+
+# ---------------------------------------------------------------------------
+# Secrets (override with --set or external secret manager)
+# ---------------------------------------------------------------------------
+secrets:
+  # -- API key for authenticating requests (MUST be overridden)
+  apiKey: "CHANGE_ME"
+
+# ---------------------------------------------------------------------------
+# Service
+# ---------------------------------------------------------------------------
+service:
+  # -- Kubernetes service type
+  type: ClusterIP
+  # -- Service port
+  port: 8000
+
+# ---------------------------------------------------------------------------
+# Probes
+# ---------------------------------------------------------------------------
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ---------------------------------------------------------------------------
+# Resource limits (sized for Minikube / Kind)
+# ---------------------------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ---------------------------------------------------------------------------
+# Security contexts
+# ---------------------------------------------------------------------------
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+# ---------------------------------------------------------------------------
+# Persistent Volume Claim for models
+# ---------------------------------------------------------------------------
+persistence:
+  # -- Enable PVC for model artifacts
+  enabled: true
+  # -- Storage class (empty string = cluster default)
+  storageClass: ""
+  # -- Access mode
+  accessMode: ReadWriteOnce
+  # -- Volume size
+  size: 1Gi
+  # -- Mount path inside the container
+  mountPath: /app/models
+
+# ---------------------------------------------------------------------------
+# Node / scheduling (leave empty for Minikube defaults)
+# ---------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
