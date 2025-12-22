@@ -1,0 +1,94 @@
+stages:
+  prepare_data:
+    cmd: python -m src.data.make_dataset --auto
+    deps:
+      - src/data/make_dataset.py
+      - src/data/cleaning.py
+      - data/raw
+    outs:
+      - data/train.csv
+      - data/test.csv
+    params:
+      - configs/config.yaml:
+          - data
+
+  build_features:
+    cmd: python -c "
+      import pandas as pd;
+      from src.features.build_features import prepare_features;
+      train = pd.read_csv('data/train.csv');
+      train = prepare_features(train);
+      train.to_csv('data/train_features.csv', index=False);
+      "
+    deps:
+      - data/train.csv
+      - src/features/build_features.py
+    outs:
+      - data/train_features.csv
+    params:
+      - configs/config.yaml:
+          - features
+
+  train:
+    cmd: python -m src.models.train --config configs/config.yaml
+    deps:
+      - data/train.csv
+      - data/test.csv
+      - src/models/train.py
+      - src/models/trainer.py
+      - configs/config.yaml
+    outs:
+      - models/model.pkl
+      - models/metrics.json
+      - models/feature_columns.json
+    params:
+      - configs/config.yaml:
+          - training
+          - model
+
+  evaluate:
+    cmd: python -c "
+      import json;
+      import pandas as pd;
+      import pickle;
+      from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score;
+      
+      with open('models/model.pkl', 'rb') as f:
+          model = pickle.load(f);
+      with open('models/feature_columns.json') as f:
+          feature_cols = json.load(f);
+      
+      test = pd.read_csv('data/test.csv');
+      X = test[feature_cols].fillna(0);
+      y = test['churn'];
+      
+      proba = model.predict_proba(X)[:, 1];
+      preds = (proba >= 0.5).astype(int);
+      
+      metrics = {
+          'test_roc_auc': roc_auc_score(y, proba),
+          'test_f1': f1_score(y, preds),
+          'test_precision': precision_score(y, preds),
+          'test_recall': recall_score(y, preds),
+          'test_samples': len(y),
+      };
+      
+      with open('models/eval_metrics.json', 'w') as f:
+          json.dump(metrics, f, indent=2);
+      
+      print('Evaluation metrics:');
+      for k, v in metrics.items():
+          print(f'  {k}: {v:.4f}' if isinstance(v, float) else f'  {k}: {v}');
+      "
+    deps:
+      - data/test.csv
+      - models/model.pkl
+      - models/feature_columns.json
+    metrics:
+      - models/eval_metrics.json:
+          cache: false
+
+plots:
+  - models/eval_metrics.json:
+      x: test_samples
+      y: test_roc_auc

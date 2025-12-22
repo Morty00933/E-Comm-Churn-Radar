@@ -1,0 +1,136 @@
+services:
+  # Main app for running commands (train, data, etc.)
+  app:
+    build: .
+    container_name: churn-app
+    environment:
+      - ENVIRONMENT=development
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_MODEL_NAME=churn-model
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src:ro
+      - ./configs:/app/configs:ro
+      - ./tests:/app/tests:ro
+      - ./data:/app/data
+      - ./models:/app/models
+    working_dir: /app
+    networks:
+      - churn-network
+    profiles:
+      - tools
+
+  api:
+    build: .
+    container_name: churn-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_MODEL_NAME=churn-model
+      - REDIS_URL=redis://redis:6379/0
+      - RATE_LIMIT_ENABLED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src:ro
+      - ./configs:/app/configs:ro
+      - ./data:/app/data
+      - ./models:/app/models
+    networks:
+      - churn-network
+    depends_on:
+      mlflow:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    networks:
+      - churn-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - churn-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  airflow:
+    image: apache/airflow:2.8.1-python3.11
+    container_name: airflow
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+      - AIRFLOW__WEBSERVER__SECRET_KEY=churn-radar-secret
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=false
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - PROJECT_ROOT=/opt/airflow/app
+      - PYTHONPATH=/opt/airflow/app
+    volumes:
+      - ./dags:/opt/airflow/dags:ro
+      - ./src:/opt/airflow/app/src:ro
+      - ./configs:/opt/airflow/app/configs:ro
+      - ./data:/opt/airflow/app/data
+      - ./models:/opt/airflow/app/models
+      - airflow-data:/opt/airflow
+    networks:
+      - churn-network
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true
+        airflow scheduler & airflow webserver
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+networks:
+  churn-network:
+    driver: bridge
+
+volumes:
+  mlflow-data:
+  redis-data:
+  airflow-data:

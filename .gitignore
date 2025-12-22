@@ -1,0 +1,76 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+.Python
+build/
+dist/
+*.egg-info/
+
+.venv/
+venv/
+ENV/
+
+.env
+.env.local
+
+*.log
+logs/
+
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+
+# Data
+data/*.csv
+data/*.parquet
+data/raw/*.csv
+data/raw/*.gz
+
+# Models
+models/*.pkl
+models/*.json
+models/*.joblib
+
+# MLflow
+mlruns/
+
+# Databases
+*.db
+*.sqlite
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# DVC
+/dvc.lock
+.dvc/cache/
+.dvc/tmp/
+.dvc/.gitignore
+
+# Documentation
+site/
+
+# Secrets
+.secrets.baseline
+
+# Optuna
+optuna.db
+*.optuna
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Airflow
+airflow.db
+airflow-webserver.pid
+standalone_admin_password.txt

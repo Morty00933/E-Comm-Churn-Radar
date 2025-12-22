@@ -1,0 +1,15 @@
+[core]
+    remote = local
+    autostage = true
+
+[remote "local"]
+    url = /tmp/dvc-storage
+
+# Uncomment for S3 remote:
+# [remote "s3"]
+#     url = s3://your-bucket/churn-radar
+#     region = us-east-1
+
+# Uncomment for GCS remote:
+# [remote "gcs"]
+#     url = gs://your-bucket/churn-radar
