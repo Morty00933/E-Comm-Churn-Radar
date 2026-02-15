@@ -298,33 +298,109 @@ def generate_demo_data(
     }
 
 
+def calculate_session_times(df: pd.DataFrame, session_gap_minutes: int = 30) -> pd.DataFrame:
+    """Calculate actual session times from event timestamps.
+
+    A new session starts when there's a gap of more than `session_gap_minutes`
+    between consecutive events for the same user.
+
+    Args:
+        df: DataFrame with event_time and user_id columns
+        session_gap_minutes: Minutes of inactivity to define a new session
+
+    Returns:
+        DataFrame with user_id and avg_session_time (in minutes)
+    """
+    df = df.sort_values(["user_id", "event_time"])
+
+    # Calculate time difference between consecutive events per user
+    df["time_diff"] = df.groupby("user_id")["event_time"].diff()
+
+    # Mark new sessions (gap > threshold)
+    gap_threshold = pd.Timedelta(minutes=session_gap_minutes)
+    df["new_session"] = (df["time_diff"] > gap_threshold) | df["time_diff"].isna()
+
+    # Assign session IDs
+    df["session_id"] = df.groupby("user_id")["new_session"].cumsum()
+
+    # Calculate session duration (time between first and last event in session)
+    session_stats = df.groupby(["user_id", "session_id"]).agg(
+        session_start=("event_time", "min"),
+        session_end=("event_time", "max"),
+        n_events=("event_time", "count"),
+    ).reset_index()
+
+    # Session duration in minutes
+    session_stats["session_duration"] = (
+        session_stats["session_end"] - session_stats["session_start"]
+    ).dt.total_seconds() / 60
+
+    # For single-event sessions, estimate duration based on event type (avg 2 minutes)
+    session_stats.loc[session_stats["n_events"] == 1, "session_duration"] = 2.0
+
+    # Average session time per user
+    avg_session_time = session_stats.groupby("user_id").agg(
+        avg_session_time=("session_duration", "mean"),
+        total_sessions=("session_id", "count"),
+    ).reset_index()
+
+    # Clip to reasonable bounds (0-120 minutes)
+    avg_session_time["avg_session_time"] = avg_session_time["avg_session_time"].clip(0, 120)
+
+    return avg_session_time[["user_id", "avg_session_time"]]
+
+
 def aggregate_events(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate raw events into user-level features.
+
+    Args:
+        df: DataFrame with event data
+
+    Returns:
+        DataFrame with one row per user and aggregated features
+    """
     df = df.copy()
     df["event_time"] = pd.to_datetime(df["event_time"])
-    
+
+    # Handle different column names (category_code vs category_id)
+    category_col = "category_code" if "category_code" in df.columns else "category_id"
+
     agg = df.groupby("user_id").agg(
         clicks=("event_type", lambda x: (x == "view").sum()),
         purchases=("event_type", lambda x: (x == "purchase").sum()),
         total_spend=("price", "sum"),
         avg_order_value=("price", lambda x: x[x > 0].mean() if (x > 0).any() else 0),
-        n_unique_categories=("category_code", "nunique"),
+        n_unique_categories=(category_col, "nunique"),
         n_unique_brands=("brand", "nunique"),
         first_event=("event_time", "min"),
         last_event=("event_time", "max"),
-        n_sessions=("user_session", "nunique"),
+        n_events=("event_type", "count"),
     ).reset_index()
-    
+
     now = df["event_time"].max()
     agg["days_since_last_visit"] = (now - agg["last_event"]).dt.days
     agg["account_age_days"] = (now - agg["first_event"]).dt.days
-    agg["active_days"] = agg["n_sessions"]
-    agg["avg_session_time"] = np.clip(
-        np.random.default_rng(42).exponential(10, len(agg)), 0, 60
-    )
-    
-    agg = agg.drop(columns=["first_event", "last_event", "n_sessions"])
+
+    # Calculate active_days (unique days with activity)
+    active_days = df.groupby("user_id").agg(
+        active_days=("event_time", lambda x: x.dt.date.nunique())
+    ).reset_index()
+    agg = agg.merge(active_days, on="user_id", how="left")
+
+    # Calculate actual average session time from event data
+    session_times = calculate_session_times(df)
+    agg = agg.merge(session_times, on="user_id", how="left")
+
+    # Fill missing session times with median (for users with insufficient data)
+    median_session_time = agg["avg_session_time"].median()
+    if pd.isna(median_session_time):
+        median_session_time = 5.0  # Default 5 minutes if no data
+    agg["avg_session_time"] = agg["avg_session_time"].fillna(median_session_time)
+
+    # Drop intermediate columns
+    agg = agg.drop(columns=["first_event", "last_event", "n_events"], errors="ignore")
     agg = agg.fillna(0)
-    
+
     return agg
 
 

@@ -53,7 +53,8 @@ def load_model(
                 _model_cache[cache_key] = model
                 logger.info(f"Loaded model {model_name} stage={try_stage}")
                 return model
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Model {model_name} not found in stage {try_stage}: {e}")
                 continue
         
     except Exception as e:
@@ -93,8 +94,8 @@ def get_feature_columns() -> List[str]:
             with open(features_path) as f:
                 data = json.load(f)
                 return data.get("features", FEATURE_COLUMNS.copy())
-        except Exception:
-            pass
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warning(f"Failed to load feature columns from {features_path}: {e}")
     
     # Fall back to base features + derived
     return FEATURE_COLUMNS + [
@@ -113,13 +114,13 @@ def get_model_version() -> Optional[str]:
         import mlflow
         mlflow.set_tracking_uri(tracking_uri)
         client = mlflow.tracking.MlflowClient()
-        
+
         versions = client.get_latest_versions(model_name, stages=["Production"])
         if versions:
             return versions[0].version
-    except Exception:
-        pass
-    
+    except Exception as e:
+        logger.debug(f"Could not get model version from MLflow: {e}")
+
     return "local"
 
 

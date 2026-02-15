@@ -10,6 +10,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("RATE_LIMIT_ENABLED", "0")
+os.environ.setdefault("API_KEY", "test-api-key-for-testing")
 
 
 @pytest.fixture

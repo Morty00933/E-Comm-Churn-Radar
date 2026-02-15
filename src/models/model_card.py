@@ -301,15 +301,15 @@ def generate_model_card(
         try:
             times = pd.to_datetime(train_df["event_time"])
             date_range = f"{times.min().date()} to {times.max().date()}"
-        except Exception:
-            pass
+        except (ValueError, TypeError):
+            date_range = "Unable to parse event_time"
     
     # Performance by segment (example: by customer tenure)
     performance_by_segment = {}
     if "account_age_days" in test_df.columns and "churn" in test_df.columns:
         try:
             from sklearn.metrics import roc_auc_score
-            
+
             # New customers (< 30 days)
             new_mask = test_df["account_age_days"] < 30
             if new_mask.sum() > 10:
@@ -320,7 +320,7 @@ def generate_model_card(
                     "count": int(new_mask.sum()),
                     "roc_auc": float(roc_auc_score(new_y, new_proba)),
                 }
-            
+
             # Established customers (>= 30 days)
             est_mask = test_df["account_age_days"] >= 30
             if est_mask.sum() > 10:
@@ -331,8 +331,9 @@ def generate_model_card(
                     "count": int(est_mask.sum()),
                     "roc_auc": float(roc_auc_score(est_y, est_proba)),
                 }
-        except Exception:
-            pass
+        except (ValueError, KeyError) as e:
+            # Insufficient data for segment analysis or missing columns
+            performance_by_segment["error"] = f"Could not compute segment performance: {e}"
     
     return ModelCard(
         model_version=version,

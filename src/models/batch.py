@@ -196,9 +196,10 @@ class BatchPredictor:
         
         try:
             await self.process_file(input_path, job, progress_callback)
-        except Exception:
-            pass  # Error already logged in process_file
-        
+        except Exception as e:
+            # Error already logged in process_file, but we note it here too
+            logger.debug(f"Batch job {job.job_id} processing exception (already logged): {type(e).__name__}")
+
         return job
     
     def run_job_sync(

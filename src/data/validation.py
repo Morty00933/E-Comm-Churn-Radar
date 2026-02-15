@@ -237,8 +237,8 @@ def validate_events(df: pd.DataFrame) -> ValidationResult:
                 "min": str(times.min()),
                 "max": str(times.max()),
             }
-        except Exception:
-            pass
+        except (ValueError, TypeError) as e:
+            warnings.append(f"Could not parse event_time column: {e}")
     
     if "event_type" in df.columns:
         stats["event_types"] = df["event_type"].value_counts().to_dict()
