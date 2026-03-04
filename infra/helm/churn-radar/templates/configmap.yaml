@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "churn-radar.fullname" . }}-config
+  labels:
+    {{- include "churn-radar.labels" . | nindent 4 }}
+data:
+  ENVIRONMENT: {{ .Values.config.environment | quote }}
+  MLFLOW_TRACKING_URI: {{ .Values.config.mlflowTrackingUri | quote }}
+  MLFLOW_MODEL_NAME: {{ .Values.config.mlflowModelName | quote }}
+  REDIS_URL: {{ .Values.config.redisUrl | quote }}
+  RATE_LIMIT_ENABLED: {{ .Values.config.rateLimitEnabled | quote }}
+  LOG_LEVEL: {{ .Values.api.logLevel | quote }}
+  ALLOWED_ORIGINS: {{ .Values.config.allowedOrigins | quote }}

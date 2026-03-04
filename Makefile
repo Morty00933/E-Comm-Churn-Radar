@@ -1,7 +1,8 @@
 .PHONY: help build dev dev-down train api clean
 
+SHELL := C:/PROGRA~1/Git/usr/bin/bash.exe
+
 IMAGE_NAME := churn-radar
-# Run app container connected to the network (needs mlflow, redis running)
 DOCKER_RUN := docker compose run --rm app
 
 help:
@@ -45,7 +46,7 @@ build:
 dev: build
 	docker compose up -d mlflow redis
 	@echo "Waiting for MLflow and Redis..."
-	@sleep 15
+	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do sleep 1; done" 2>/dev/null || timeout /t 15 /nobreak >NUL 2>&1 || true
 	docker compose up -d api airflow
 	@echo ""
 	@echo "Services started:"
@@ -64,7 +65,7 @@ logs:
 
 api:
 	docker compose up -d mlflow redis
-	@sleep 10
+	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; done" 2>/dev/null || timeout /t 10 /nobreak >NUL 2>&1 || true
 	docker compose up api
 
 api-logs:
@@ -136,7 +137,7 @@ _ensure-services:
 	@echo "Ensuring MLflow and Redis are running..."
 	@docker compose up -d mlflow redis 2>/dev/null || true
 	@echo "Waiting for services to be ready..."
-	@sleep 10
+	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; done" 2>/dev/null || timeout /t 10 /nobreak >NUL 2>&1 || true
 	@docker compose ps mlflow redis
 
 # ==================== CLEANUP ====================
@@ -147,8 +148,7 @@ clean:
 	rm -rf data/*.csv data/predictions.csv
 	rm -rf models/*.pkl models/*.json
 	rm -rf mlruns/ site/
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete
+	docker run --rm -v "$(CURDIR):/work" -w /work alpine sh -c 'find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; find . -type f -name "*.pyc" -delete 2>/dev/null' || true
 
 clean-docker:
 	docker compose down -v --rmi local

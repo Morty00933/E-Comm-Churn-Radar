@@ -1,0 +1,13 @@
+apiVersion: v2
+name: churn-radar
+description: Helm chart for E-Comm Churn Radar - Customer Churn Prediction API
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - churn
+  - prediction
+  - machine-learning
+  - fastapi
+maintainers:
+  - name: Churn Radar Team

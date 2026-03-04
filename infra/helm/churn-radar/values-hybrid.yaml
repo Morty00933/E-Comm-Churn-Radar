@@ -1,0 +1,4 @@
+# Hybrid mode: infra on host Docker, apps in Minikube
+config:
+  redisUrl: "redis://host.minikube.internal:6379/0"
+  mlflowTrackingUri: "http://host.minikube.internal:5000"

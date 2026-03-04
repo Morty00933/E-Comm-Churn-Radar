@@ -1,8 +1,8 @@
-FROM python:3.11-slim
+FROM ghcr.io/astral-sh/uv:0.6-python3.11-bookworm-slim
 
 WORKDIR /mlflow
 
-RUN pip install --no-cache-dir mlflow==2.18.0 psutil
+RUN uv pip install --system mlflow==2.18.0 psutil
 
 RUN mkdir -p /mlflow/artifacts
 

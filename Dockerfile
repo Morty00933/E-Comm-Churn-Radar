@@ -1,7 +1,7 @@
 # =============================================================================
 # Stage 1: Builder - Install dependencies
 # =============================================================================
-FROM python:3.11-slim AS builder
+FROM ghcr.io/astral-sh/uv:0.6-python3.11-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -13,10 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies into a virtual environment
 COPY requirements.txt ./
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN uv venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH" \
+    VIRTUAL_ENV="/opt/venv"
+RUN uv pip install -r requirements.txt
 
 # =============================================================================
 # Stage 2: Production image
