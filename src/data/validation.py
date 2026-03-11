@@ -15,8 +15,6 @@ except ImportError:
     pa = None
 
 
-# ==================== SCHEMAS ====================
-
 def get_events_schema() -> "DataFrameSchema":
     """Schema for raw events data."""
     if not PANDERA_AVAILABLE:
@@ -177,8 +175,6 @@ def get_prediction_input_schema() -> "DataFrameSchema":
     )
 
 
-# ==================== VALIDATION ====================
-
 class ValidationResult:
     """Result of data validation."""
     
@@ -302,8 +298,6 @@ def validate_features(df: pd.DataFrame) -> ValidationResult:
         stats=stats,
     )
 
-
-# ==================== DRIFT DETECTION ====================
 
 def detect_drift(
     reference: pd.DataFrame,

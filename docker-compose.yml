@@ -9,6 +9,7 @@ services:
       - MLFLOW_MODEL_NAME=churn-model
       - REDIS_URL=redis://redis:6379/0
       - LOG_LEVEL=INFO
+      - GIT_PYTHON_REFRESH=quiet
     volumes:
       - ./src:/app/src:ro
       - ./configs:/app/configs:ro
@@ -33,6 +34,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - RATE_LIMIT_ENABLED=1
       - LOG_LEVEL=INFO
+      - GIT_PYTHON_REFRESH=quiet
       - API_KEY=${API_KEY:?API_KEY is required}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
     volumes:

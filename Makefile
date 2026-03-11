@@ -1,9 +1,18 @@
 .PHONY: help build dev dev-down train api clean
 
-SHELL := C:/PROGRA~1/Git/usr/bin/bash.exe
+# ---- Кросс-платформенный shell ----
+# Windows: Git for Windows поставляет bash по стандартному пути (PROGRA~1 = "Program Files")
+# Linux / macOS: /bin/bash
+ifeq ($(OS),Windows_NT)
+    SHELL := C:/PROGRA~1/Git/usr/bin/bash.exe
+else
+    SHELL := /bin/bash
+endif
 
-IMAGE_NAME := churn-radar
-DOCKER_RUN := docker compose run --rm app
+IMAGE_NAME  := churn-radar
+DOCKER_RUN  := docker compose run --rm app
+
+# ==================== HELP ====================
 
 help:
 	@echo "Churn Radar - ML Platform (Docker-based)"
@@ -46,7 +55,7 @@ build:
 dev: build
 	docker compose up -d mlflow redis
 	@echo "Waiting for MLflow and Redis..."
-	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do sleep 1; done" 2>/dev/null || timeout /t 15 /nobreak >NUL 2>&1 || true
+	@$(MAKE) _wait-redis
 	docker compose up -d api airflow
 	@echo ""
 	@echo "Services started:"
@@ -65,7 +74,7 @@ logs:
 
 api:
 	docker compose up -d mlflow redis
-	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; done" 2>/dev/null || timeout /t 10 /nobreak >NUL 2>&1 || true
+	@$(MAKE) _wait-redis
 	docker compose up api
 
 api-logs:
@@ -133,11 +142,18 @@ shell: _ensure-services
 
 # ==================== HELPERS ====================
 
+# Ожидание Redis — цикл запускается ВНУТРИ контейнера через sh -c.
+# redis-cli, grep, sleep гарантированно есть внутри Alpine-образа Redis.
+# Хост не должен иметь никаких утилит: ни grep, ни sleep.
+_wait-redis:
+	@echo "Waiting for Redis to be ready..."
+	@docker compose exec -T redis sh -c \
+		'i=0; while [ $$i -lt 30 ]; do redis-cli ping 2>/dev/null | grep -q PONG && echo "Redis is ready." && exit 0; sleep 1; i=$$((i+1)); done; echo "Warning: Redis did not respond in time, continuing anyway..."'
+
 _ensure-services:
 	@echo "Ensuring MLflow and Redis are running..."
 	@docker compose up -d mlflow redis 2>/dev/null || true
-	@echo "Waiting for services to be ready..."
-	@docker compose exec redis sh -c "for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; done" 2>/dev/null || timeout /t 10 /nobreak >NUL 2>&1 || true
+	@$(MAKE) _wait-redis
 	@docker compose ps mlflow redis
 
 # ==================== CLEANUP ====================
@@ -148,7 +164,8 @@ clean:
 	rm -rf data/*.csv data/predictions.csv
 	rm -rf models/*.pkl models/*.json
 	rm -rf mlruns/ site/
-	docker run --rm -v "$(CURDIR):/work" -w /work alpine sh -c 'find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; find . -type f -name "*.pyc" -delete 2>/dev/null' || true
+	docker run --rm -v "$(CURDIR):/work" -w /work alpine \
+		sh -c 'find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; find . -type f -name "*.pyc" -delete 2>/dev/null' || true
 
 clean-docker:
 	docker compose down -v --rmi local

@@ -1,4 +1,4 @@
-#  Churn Radar
+# Churn Radar
 
 **Production-Ready ML Platform for Customer Churn Prediction**
 
@@ -7,22 +7,22 @@
 [![MLflow](https://img.shields.io/badge/MLflow-2.18+-orange.svg)](https://mlflow.org/)
 [![CI](https://github.com/yourname/churn-radar/actions/workflows/ci.yml/badge.svg)](https://github.com/yourname/churn-radar/actions)
 
-##  Features
+## Features
 
--  **FastAPI** - High-performance REST API with auth & rate limiting
--  **MLflow** - Model versioning and experiment tracking
--  **Airflow** - Orchestrated ML pipelines (7 DAGs)
--  **Prometheus + Grafana** - Metrics and dashboards
--  **SHAP Explainability** - Understand prediction drivers
--  **Redis Feature Store** - Cached features with TTL
--  **A/B Testing** - Model comparison and gradual rollout
--  **Notifications** - Slack/Telegram alerts
-- 🔧 **Optuna HPO** - Hyperparameter optimization
--  **Model Cards** - Auto-generated documentation
--  **DVC** - Data versioning and pipelines
--  **Rich CLI** - Beautiful terminal interface
+- **FastAPI** - High-performance REST API with auth & rate limiting
+- **MLflow** - Model versioning and experiment tracking
+- **Airflow** - Orchestrated ML pipelines (7 DAGs)
+- **Prometheus + Grafana** - Metrics and dashboards
+- **SHAP Explainability** - Understand prediction drivers
+- **Redis Feature Store** - Cached features with TTL
+- **A/B Testing** - Model comparison and gradual rollout
+- **Notifications** - Slack/Telegram alerts
+- **Optuna HPO** - Hyperparameter optimization
+- **Model Cards** - Auto-generated documentation
+- **DVC** - Data versioning and pipelines
+- **Rich CLI** - Beautiful terminal interface
 
-##  Quick Start
+## Quick Start
 
 ```bash
 git clone https://github.com/yourname/churn-radar.git
@@ -41,7 +41,7 @@ make train-demo
 
 All commands run inside Docker containers - no local Python setup needed!
 
-##  Data Options
+## Data Options
 
 ### Demo Data (Synthetic)
 ```bash
@@ -64,7 +64,7 @@ make train-real        # Full dataset
 make data-sample       # 10% sample
 ```
 
-## 🔧 Make Commands
+## Make Commands
 
 ```bash
 # Setup & Services
@@ -92,7 +92,7 @@ make shell          # Open bash in container
 make clean          # Clean artifacts
 ```
 
-##  API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -105,7 +105,7 @@ make clean          # Clean artifacts
 | `/metrics` | GET | Prometheus metrics |
 | `/docs` | GET | Swagger UI |
 
-##  How to Use the Model
+## How to Use the Model
 
 ### 1. Start Services
 ```bash
@@ -250,7 +250,7 @@ results = response.json()["predictions"]
 | `n_unique_categories` | Unique product categories viewed |
 | `n_unique_brands` | Unique brands viewed |
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 churn-radar/
@@ -271,7 +271,7 @@ churn-radar/
 └── mkdocs.yml         # Documentation config
 ```
 
-##  Airflow DAGs
+## Airflow DAGs
 
 | DAG | Schedule | Description |
 |-----|----------|-------------|
@@ -283,7 +283,7 @@ churn-radar/
 | `train_on_real_data` | Manual | Real data + training |
 | `hyperparameter_optimization` | Manual | Optuna HPO |
 
-##  Monitoring
+## Monitoring
 
 ### Grafana Dashboard
 Import `grafana/dashboard.json` for:
@@ -298,7 +298,7 @@ Import `grafana/dashboard.json` for:
 - `churn_predictions_total`
 - `churn_prediction_probability`
 
-##  Development
+## Development
 
 ```bash
 # Install dev dependencies
@@ -319,7 +319,7 @@ make format
 make docs
 ```
 
-##  DVC Pipeline
+## DVC Pipeline
 
 ```bash
 # Initialize DVC
@@ -332,7 +332,7 @@ make dvc-repro
 make dvc-push
 ```
 
-##  Notifications
+## Notifications
 
 Configure in `.env`:
 ```bash
@@ -346,7 +346,7 @@ TELEGRAM_CHAT_ID=your-chat-id
 
 Events: Training complete, model promoted, pipeline failed, drift detected.
 
-##  A/B Testing
+## A/B Testing
 
 ```python
 from src.models.ab_testing import get_ab_tester, Experiment
@@ -363,7 +363,7 @@ tester.register_experiment(Experiment(
 result = tester.get_variant("model_v2_rollout", user_id=123)
 ```
 
-##  Model Card
+## Model Card
 
 Auto-generated model documentation:
 ```bash
@@ -372,7 +372,7 @@ models/MODEL_CARD.md
 models/model_card.json
 ```
 
-##  Tech Stack
+## Tech Stack
 
 - **API**: FastAPI, Pydantic, uvicorn
 - **ML**: scikit-learn, LightGBM, XGBoost, SHAP, Optuna
@@ -383,6 +383,6 @@ models/model_card.json
 - **Docs**: MkDocs Material
 - **CI/CD**: GitHub Actions
 
-## 📄 License
+## License
 
 MIT

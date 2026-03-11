@@ -4,7 +4,7 @@ import os
 import time
 from typing import Any, Dict, Union
 
-from fastapi import Body, FastAPI, Security
+from fastapi import Body, FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.common.logging import get_logger
@@ -41,8 +41,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Security: Configure CORS with explicit origins
-# In production, set ALLOWED_ORIGINS environment variable
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
 ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
 
@@ -166,17 +164,25 @@ async def predict(
     payload: Dict[str, Any] = Body(...),
     _auth: str = Security(authorize_request),
 ) -> PredictionResponse:
-    if "customers" in payload:
-        records = payload["customers"]
-        predictions = predict_customers(records)
-        return BatchPredictionResponse(
-            predictions=[PredictionResult(**p) for p in predictions]
-        )
-    else:
-        predictions = predict_customers([payload])
-        return SinglePredictionResponse(
-            prediction=PredictionResult(**predictions[0])
-        )
+    try:
+        if "customers" in payload:
+            records = payload["customers"]
+            if not records:
+                raise HTTPException(status_code=422, detail="customers list cannot be empty")
+            predictions = predict_customers(records)
+            return BatchPredictionResponse(
+                predictions=[PredictionResult(**p) for p in predictions]
+            )
+        else:
+            predictions = predict_customers([payload])
+            return SinglePredictionResponse(
+                prediction=PredictionResult(**predictions[0])
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Prediction failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/v1/health", response_model=HealthResponse)
@@ -191,8 +197,6 @@ async def predict_v1(
 ) -> PredictionResponse:
     return await predict(payload, _auth)
 
-
-# ==================== EXPLAINABILITY ====================
 
 @app.post("/explain")
 async def explain(
@@ -222,14 +226,10 @@ async def explain(
         df = pd.DataFrame(records)
         df = prepare_features(df)
         
-        # Load model and create explainer
         model = load_model()
         feature_cols = get_feature_columns()
-        
-        # Filter to only available columns
         available_cols = [c for c in feature_cols if c in df.columns]
-        
-        # Get the underlying sklearn model if it's an MLflow pyfunc
+
         sklearn_model = model
         if hasattr(model, "_model_impl"):
             sklearn_model = model._model_impl.python_model
@@ -252,8 +252,7 @@ async def explain(
             if isinstance(probas, pd.DataFrame):
                 probas = probas.iloc[:, 0].values
         
-        # Get explanations
-        explanations = explainer.explain(df[available_cols], top_k=top_k)
+        explanations = await explainer.explain_async(df[available_cols], top_k=top_k)
         
         # Build response
         results = []
@@ -292,17 +291,14 @@ async def feature_importance(
         model = load_model()
         feature_cols = get_feature_columns()
         
-        # Get the underlying sklearn model if it's an MLflow pyfunc
         sklearn_model = model
         if hasattr(model, "_model_impl"):
             sklearn_model = model._model_impl.python_model
         if hasattr(sklearn_model, "get_raw_model"):
             sklearn_model = sklearn_model.get_raw_model()
-        
-        # Try to get from model's built-in feature importance first
+
         if hasattr(sklearn_model, "feature_importances_"):
             n_features = len(sklearn_model.feature_importances_)
-            # Use only as many feature names as the model has
             names = feature_cols[:n_features] if n_features <= len(feature_cols) else feature_cols
             importance = {
                 name: float(imp)
@@ -311,7 +307,6 @@ async def feature_importance(
             importance = dict(sorted(importance.items(), key=lambda x: x[1], reverse=True))
             return {"feature_importance": importance, "source": "model"}
         
-        # Try to load training data for SHAP-based importance
         train_path = Path("data/train.csv")
         if train_path.exists():
             train_df = pd.read_csv(train_path)

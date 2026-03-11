@@ -181,7 +181,7 @@ class TestExplainEndpoint:
         response = api_client.post(
             "/explain",
             json={"user_id": 123, "clicks": 50, "purchases": 3},
-            headers={"X-API-Key": "dev-api-key"},
+            headers={"X-API-Key": "test-api-key-for-testing"},
         )
         # Endpoint should exist (might fail due to missing model)
         assert response.status_code in [200, 400, 500]
@@ -194,7 +194,7 @@ class TestFeatureImportanceEndpoint:
         """Test that feature-importance endpoint exists."""
         response = api_client.get(
             "/feature-importance",
-            headers={"X-API-Key": "dev-api-key"},
+            headers={"X-API-Key": "test-api-key-for-testing"},
         )
         # Endpoint should exist
         assert response.status_code in [200, 400, 500]

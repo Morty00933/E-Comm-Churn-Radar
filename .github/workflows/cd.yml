@@ -76,18 +76,12 @@ jobs:
     steps:
       - name: Deploy notification
         run: |
-          echo "🚀 Deploying to staging..."
+          echo "Deploying to staging..."
           echo "Image: ${{ needs.build-and-push.outputs.image_tag }}"
-      
-      # Add your deployment steps here:
-      # - SSH to server
-      # - docker compose pull && docker compose up -d
-      # - Or kubectl apply
-      # - Or AWS ECS update
-      
+
       - name: Health check
         run: |
-          echo "✅ Deployment complete"
+          echo "Deployment complete"
           # curl -f https://staging.churn-radar.example.com/health
 
   deploy-production:
@@ -101,11 +95,9 @@ jobs:
     steps:
       - name: Deploy notification
         run: |
-          echo "🚀 Deploying to production..."
+          echo "Deploying to production..."
           echo "Image: ${{ needs.build-and-push.outputs.image_tag }}"
-      
-      # Add production deployment steps
-      
+
       - name: Health check
         run: |
-          echo "✅ Production deployment complete"
+          echo "Production deployment complete"

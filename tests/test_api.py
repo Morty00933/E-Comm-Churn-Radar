@@ -1,7 +1,7 @@
 """Tests for API endpoints."""
 import os
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 # Use the API key set in conftest.py
@@ -125,13 +125,16 @@ class TestExplainEndpoint:
                 mock_load.return_value = mock_model
 
                 mock_explainer_instance = MagicMock()
-                mock_explainer_instance.explain.return_value = [
+                mock_explainer_instance.explain_async = AsyncMock(return_value=[
                     {
+                        "base_value": 0.5,
+                        "prediction_contribution": 0.2,
                         "top_features": [
-                            {"feature": "clicks", "shap_value": 0.1, "impact": "increases"}
-                        ]
+                            {"feature": "clicks", "value": 50.0,
+                             "shap_value": 0.1, "impact": "increases"}
+                        ],
                     }
-                ]
+                ])
                 mock_explainer.return_value = mock_explainer_instance
 
                 response = api_client.post(

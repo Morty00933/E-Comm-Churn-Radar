@@ -1,6 +1,7 @@
 """Model explainability using SHAP."""
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -131,7 +132,15 @@ class ModelExplainer:
             })
         
         return explanations
-    
+
+    async def explain_async(
+        self,
+        X: pd.DataFrame,
+        top_k: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """Run explain() in a thread pool to avoid blocking the FastAPI event loop."""
+        return await asyncio.to_thread(self.explain, X, top_k)
+
     def get_feature_importance(self) -> Dict[str, float]:
         """Get global feature importance from SHAP values.
         

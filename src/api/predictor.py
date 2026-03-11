@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,7 +12,8 @@ from src.monitoring.metrics import record_prediction
 
 logger = get_logger(__name__)
 
-_model_cache: Dict[str, Any] = {}
+_model_cache: Dict[str, Tuple[Any, float]] = {}
+MODEL_CACHE_TTL = int(os.getenv("MODEL_CACHE_TTL_SEC", "300"))
 
 FEATURE_COLUMNS = [
     "clicks",
@@ -36,40 +38,46 @@ def load_model(
     tracking_uri = tracking_uri or os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
     
     cache_key = f"{model_name}:{stage}"
-    
+    now = time.time()
+
     if cache_key in _model_cache:
-        return _model_cache[cache_key]
-    
+        cached_model, loaded_at = _model_cache[cache_key]
+        age = now - loaded_at
+        if MODEL_CACHE_TTL == 0 or age < MODEL_CACHE_TTL:
+            return cached_model
+        logger.info(f"Model cache expired for {cache_key} (age={age:.0f}s), reloading")
+        del _model_cache[cache_key]
+
     # Try MLflow first
     try:
         import mlflow
         mlflow.set_tracking_uri(tracking_uri)
-        
+
         # Try Production first, then Staging
         for try_stage in [stage, "Staging", "None"]:
             try:
                 model_uri = f"models:/{model_name}/{try_stage}"
-                model = mlflow.sklearn.load_model(model_uri)  # Use sklearn loader for sklearn models
-                _model_cache[cache_key] = model
+                model = mlflow.sklearn.load_model(model_uri)
+                _model_cache[cache_key] = (model, time.time())
                 logger.info(f"Loaded model {model_name} stage={try_stage}")
                 return model
             except Exception as e:
                 logger.debug(f"Model {model_name} not found in stage {try_stage}: {e}")
                 continue
-        
+
     except Exception as e:
         logger.warning(f"MLflow model not available: {e}")
-    
+
     # Fall back to local model
     local_path = os.getenv("LOCAL_MODEL_PATH", "models/model.pkl")
     if os.path.exists(local_path):
         import pickle
         with open(local_path, "rb") as f:
             model = pickle.load(f)
-        _model_cache[cache_key] = model
+        _model_cache[cache_key] = (model, time.time())
         logger.info(f"Loaded local model from {local_path}")
         return model
-    
+
     raise RuntimeError("No model available")
 
 
@@ -87,7 +95,6 @@ def get_feature_columns() -> List[str]:
     import json
     from pathlib import Path
     
-    # Try to load from saved file
     features_path = Path("models/feature_columns.json")
     if features_path.exists():
         try:

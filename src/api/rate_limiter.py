@@ -16,10 +16,10 @@ RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1") == "1"
 RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
 RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW_SEC", "60"))
 
-# Stricter limits for expensive endpoints
+# Лимиты для «тяжёлых» эндпоинтов (SHAP медленный — даём запас, но не снимаем защиту)
 ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
-    "/explain": (int(os.getenv("RATE_LIMIT_EXPLAIN_REQUESTS", "10")), 60),  # 10 per minute
-    "/feature-importance": (int(os.getenv("RATE_LIMIT_IMPORTANCE_REQUESTS", "20")), 60),  # 20 per minute
+    "/explain": (int(os.getenv("RATE_LIMIT_EXPLAIN_REQUESTS", "30")), 60),          # 30 req/min
+    "/feature-importance": (int(os.getenv("RATE_LIMIT_IMPORTANCE_REQUESTS", "60")), 60),  # 60 req/min
 }
 
 _redis_client = None

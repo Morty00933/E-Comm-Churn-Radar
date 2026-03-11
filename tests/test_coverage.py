@@ -1,4 +1,4 @@
-"""Tests to improve coverage for low-coverage modules."""
+﻿"""Tests to improve coverage for low-coverage modules."""
 
 import os
 import sys
@@ -13,8 +13,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-
-# ==================== CLI TESTS ====================
 
 class TestCLIHelpers:
     """Test CLI helper functions."""
@@ -109,8 +107,6 @@ class TestCLICommands:
             assert cli is not None
 
 
-# ==================== RATE LIMITER TESTS ====================
-
 class TestRateLimiter:
     """Test rate limiter functions."""
     
@@ -150,28 +146,28 @@ class TestRateLimiter:
         
         _local_cache.clear()
         
-        allowed, remaining = _check_rate_limit_local("test_client_new_" + str(time.time()))
+        allowed, remaining = _check_rate_limit_local("test_client_new_" + str(time.time()), 100, 60)
         assert allowed is True
         assert remaining > 0
-    
+
     def test_check_rate_limit_local_existing(self):
         """Test local rate limiting for existing client."""
         from src.api.rate_limiter import _check_rate_limit_local, _local_cache
-        
+
         client_id = "test_existing_" + str(time.time())
         _local_cache[f"rate_limit:{client_id}"] = (5, time.time())
-        
-        allowed, remaining = _check_rate_limit_local(client_id)
+
+        allowed, remaining = _check_rate_limit_local(client_id, 100, 60)
         assert allowed is True
-    
+
     def test_check_rate_limit_local_expired(self):
         """Test local rate limiting with expired window."""
         from src.api.rate_limiter import _check_rate_limit_local, _local_cache
-        
+
         client_id = "test_expired_" + str(time.time())
         _local_cache[f"rate_limit:{client_id}"] = (50, time.time() - 1000)
-        
-        allowed, remaining = _check_rate_limit_local(client_id)
+
+        allowed, remaining = _check_rate_limit_local(client_id, 100, 60)
         assert allowed is True
 
 
@@ -210,8 +206,6 @@ class TestRateLimiterAsync:
         
         rate_limiter._redis_client = None
 
-
-# ==================== FEATURE STORE TESTS ====================
 
 class TestFeatureStoreExtended:
     """Extended feature store tests."""
@@ -388,8 +382,6 @@ class TestFeatureStoreExtended:
         assert store1 is store2
 
 
-# ==================== NOTIFICATIONS TESTS ====================
-
 class TestNotificationsExtended:
     """Extended notifications tests."""
     
@@ -539,8 +531,6 @@ class TestNotificationsAsync:
         assert len(results) == 1
 
 
-# ==================== VALIDATION TESTS ====================
-
 class TestValidationExtended:
     """Extended validation tests."""
     
@@ -613,8 +603,6 @@ class TestValidationExtended:
         assert "has_drift" in result
         assert "features_with_drift" in result
 
-
-# ==================== BATCH MODULE TESTS ====================
 
 class TestBatchModule:
     """Batch processing tests."""
@@ -722,8 +710,6 @@ class TestBatchModule:
         os.unlink(f.name)
 
 
-# ==================== HPO TESTS ====================
-
 class TestHPOModule:
     """HPO module tests."""
     
@@ -796,8 +782,6 @@ class TestHPOModule:
         space = get_random_forest_search_space(trial)
         assert isinstance(space, dict)
 
-
-# ==================== AB TESTING TESTS ====================
 
 class TestABTestingModule:
     """A/B testing module tests."""
@@ -962,8 +946,6 @@ class TestABTestingModule:
         assert tester1 is tester2
 
 
-# ==================== MODEL CARD TESTS ====================
-
 class TestModelCardModule:
     """Model card module tests."""
     
@@ -1027,8 +1009,6 @@ class TestModelCardModule:
         assert "1.0" in md
 
 
-# ==================== TRAIN MODULE TESTS ====================
-
 class TestTrainModule:
     """Train module tests."""
     
@@ -1059,8 +1039,10 @@ training:
         
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a mock TrainingResult
+            from sklearn.dummy import DummyClassifier
+            dummy_model = DummyClassifier().fit([[0]], [0])
             result = TrainingResult(
-                model=MagicMock(),
+                model=dummy_model,
                 algorithm="lightgbm",
                 params={"n_estimators": 100},
                 metrics={"accuracy": 0.9},
@@ -1083,8 +1065,6 @@ training:
             assert Path(tmpdir, "metrics.json").exists()
             assert Path(tmpdir, "feature_columns.json").exists()
 
-
-# ==================== EXPLAINER TESTS ====================
 
 class TestExplainerModule:
     """Explainer module tests."""
@@ -1146,8 +1126,6 @@ class TestExplainerModule:
         assert len(results) == 2
 
 
-# ==================== API ENDPOINT TESTS ====================
-
 class TestAPIEndpoints:
     """API endpoint tests."""
     
@@ -1163,7 +1141,7 @@ class TestAPIEndpoints:
                 "active_days": 25,
                 "days_since_last_visit": 3,
             },
-            headers={"X-API-Key": "dev-api-key"},
+            headers={"X-API-Key": "test-api-key-for-testing"},
         )
         
         assert response.status_code == 200
@@ -1178,7 +1156,7 @@ class TestAPIEndpoints:
                     {"user_id": 2, "clicks": 20},
                 ]
             },
-            headers={"X-API-Key": "dev-api-key"},
+            headers={"X-API-Key": "test-api-key-for-testing"},
         )
         
         assert response.status_code == 200
@@ -1193,3 +1171,4 @@ class TestAPIEndpoints:
         """Test ReDoc endpoint."""
         response = api_client.get("/redoc")
         assert response.status_code == 200
+

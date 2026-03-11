@@ -142,22 +142,22 @@ class TelegramChannel(NotificationChannel):
         self.bot_token = bot_token or os.getenv("TELEGRAM_BOT_TOKEN")
         self.chat_id = chat_id or os.getenv("TELEGRAM_CHAT_ID")
     
-    def _get_emoji(self, level: NotificationLevel) -> str:
-        """Get emoji for notification level."""
-        emojis = {
-            NotificationLevel.INFO: "ℹ️",
-            NotificationLevel.SUCCESS: "✅",
-            NotificationLevel.WARNING: "⚠️",
-            NotificationLevel.ERROR: "❌",
+    def _get_prefix(self, level: NotificationLevel) -> str:
+        """Get text prefix for notification level."""
+        prefixes = {
+            NotificationLevel.INFO: "[INFO]",
+            NotificationLevel.SUCCESS: "[OK]",
+            NotificationLevel.WARNING: "[WARN]",
+            NotificationLevel.ERROR: "[ERROR]",
         }
-        return emojis.get(level, "📢")
+        return prefixes.get(level, "[ALERT]")
     
     def _build_message(self, notification: Notification) -> str:
         """Build Telegram message text."""
-        emoji = self._get_emoji(notification.level)
-        
+        prefix = self._get_prefix(notification.level)
+
         lines = [
-            f"{emoji} *{notification.title}*",
+            f"{prefix} *{notification.title}*",
             "",
             notification.message,
         ]
@@ -261,7 +261,7 @@ class NotificationManager:
     ) -> None:
         """Send training completion notification."""
         notification = Notification(
-            title="🎓 Model Training Complete",
+            title="Model Training Complete",
             message=f"Model `{model_name}` has finished training.",
             level=NotificationLevel.SUCCESS,
             metadata={
@@ -281,7 +281,7 @@ class NotificationManager:
     ) -> None:
         """Send model promotion notification."""
         notification = Notification(
-            title="🚀 Model Promoted",
+            title="Model Promoted",
             message=f"Model `{model_name}` v{version} promoted to {stage}.",
             level=NotificationLevel.SUCCESS,
             metadata={
@@ -300,7 +300,7 @@ class NotificationManager:
     ) -> None:
         """Send pipeline failure notification."""
         notification = Notification(
-            title="❌ Pipeline Failed",
+            title="Pipeline Failed",
             message=f"Pipeline `{pipeline_name}` encountered an error.",
             level=NotificationLevel.ERROR,
             metadata={
@@ -318,7 +318,7 @@ class NotificationManager:
     ) -> None:
         """Send data drift notification."""
         notification = Notification(
-            title="⚠️ Data Drift Detected",
+            title="Data Drift Detected",
             message=f"Significant drift detected in {len(features)} features.",
             level=NotificationLevel.WARNING,
             metadata={

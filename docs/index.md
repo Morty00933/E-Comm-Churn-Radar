@@ -1,4 +1,4 @@
-# 🎯 Churn Radar
+# Churn Radar
 
 **ML Platform for Customer Churn Prediction**
 
@@ -6,12 +6,12 @@ Churn Radar is a production-ready machine learning platform for predicting custo
 
 ## Features
 
-- 🚀 **FastAPI** - High-performance REST API
-- 📊 **MLflow** - Model versioning and experiment tracking
-- 🔄 **Airflow** - Orchestrated ML pipelines
-- 📈 **Prometheus** - Metrics and monitoring
-- 🔍 **SHAP** - Model explainability
-- ⚡ **Redis** - Feature caching and rate limiting
+- **FastAPI** - High-performance REST API
+- **MLflow** - Model versioning and experiment tracking
+- **Airflow** - Orchestrated ML pipelines
+- **Prometheus** - Metrics and monitoring
+- **SHAP** - Model explainability
+- **Redis** - Feature caching and rate limiting
 
 ## Quick Start
 

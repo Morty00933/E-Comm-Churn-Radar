@@ -28,12 +28,12 @@ def print_banner():
     """Print application banner."""
     if not RICH_AVAILABLE:
         print("=" * 50)
-        print("🎯 Churn Radar - ML Platform")
+        print("Churn Radar - ML Platform")
         print("=" * 50)
         return
-    
+
     banner = """
-    [bold cyan]🎯 Churn Radar[/bold cyan]
+    [bold cyan]Churn Radar[/bold cyan]
     [dim]ML Platform for Customer Churn Prediction[/dim]
     """
     console.print(Panel(banner, border_style="cyan"))
@@ -73,33 +73,33 @@ def print_table(title: str, data: dict, columns: list = None):
 def print_success(message: str):
     """Print success message."""
     if RICH_AVAILABLE:
-        console.print(f"[bold green]✓[/bold green] {message}")
+        console.print(f"[bold green][OK][/bold green] {message}")
     else:
-        print(f"✓ {message}")
+        print(f"[OK] {message}")
 
 
 def print_error(message: str):
     """Print error message."""
     if RICH_AVAILABLE:
-        console.print(f"[bold red]✗[/bold red] {message}")
+        console.print(f"[bold red][FAIL][/bold red] {message}")
     else:
-        print(f"✗ {message}", file=sys.stderr)
+        print(f"[FAIL] {message}", file=sys.stderr)
 
 
 def print_warning(message: str):
     """Print warning message."""
     if RICH_AVAILABLE:
-        console.print(f"[bold yellow]⚠[/bold yellow] {message}")
+        console.print(f"[bold yellow][WARN][/bold yellow] {message}")
     else:
-        print(f"⚠ {message}")
+        print(f"[WARN] {message}")
 
 
 def print_info(message: str):
     """Print info message."""
     if RICH_AVAILABLE:
-        console.print(f"[bold blue]ℹ[/bold blue] {message}")
+        console.print(f"[bold blue][INFO][/bold blue] {message}")
     else:
-        print(f"ℹ {message}")
+        print(f"[INFO] {message}")
 
 
 class ProgressBar:
@@ -137,14 +137,12 @@ class ProgressBar:
             self._progress.update(self._task, advance=advance)
 
 
-# ==================== CLI COMMANDS ====================
-
 if RICH_AVAILABLE:
-    
+
     @click.group()
     @click.version_option(version="1.0.0")
     def cli():
-        """🎯 Churn Radar CLI - ML Platform for Customer Churn Prediction"""
+        """Churn Radar CLI - ML Platform for Customer Churn Prediction"""
         pass
     
     @cli.command()
@@ -279,10 +277,10 @@ if RICH_AVAILABLE:
         model_exists = Path("models/model.pkl").exists()
         
         status_data = {
-            "Training data": "✓" if train_exists else "✗",
-            "Test data": "✓" if test_exists else "✗",
-            "Raw data": "✓" if raw_exists else "✗",
-            "Trained model": "✓" if model_exists else "✗",
+            "Training data": "yes" if train_exists else "no",
+            "Test data": "yes" if test_exists else "no",
+            "Raw data": "yes" if raw_exists else "no",
+            "Trained model": "yes" if model_exists else "no",
         }
         
         print_table("System Status", status_data)

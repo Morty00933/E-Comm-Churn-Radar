@@ -276,8 +276,6 @@ with DAG(
     trigger_etl >> trigger_training >> trigger_inference >> notify_completion()
 
 
-# ==================== REAL DATA PIPELINE ====================
-
 with DAG(
     dag_id="etl_real_data",
     description="ETL: Process real Kaggle eCommerce data",
@@ -419,8 +417,6 @@ with DAG(
     
     trigger_etl_real >> trigger_training_real >> log_completion()
 
-
-# ==================== HPO PIPELINE ====================
 
 @dag(
     dag_id="hyperparameter_optimization",
