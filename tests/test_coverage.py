@@ -1171,4 +1171,7 @@ class TestAPIEndpoints:
         """Test ReDoc endpoint."""
         response = api_client.get("/redoc")
         assert response.status_code == 200
+<<<<<<< HEAD
 
+=======
+>>>>>>> master

@@ -252,6 +252,10 @@ async def explain(
             if isinstance(probas, pd.DataFrame):
                 probas = probas.iloc[:, 0].values
         
+<<<<<<< HEAD
+=======
+        # Get explanations (async — не блокирует event loop)
+>>>>>>> master
         explanations = await explainer.explain_async(df[available_cols], top_k=top_k)
         
         # Build response
